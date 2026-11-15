@@ -45,7 +45,7 @@ void my_setup(int width, int height, char* window_name_str)
 	// glutInitDisplay/Mode(GLUT_DOUBLE | GLUT_RGB);
 	// below code line does single buffering - if above line is uncommented,
 	// the single buffering line that follows will have to be commented out
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(width, height);
 	glutInitWindowPosition(STRT_X_POS, STRT_Y_POS);
 	glutCreateWindow(window_name_str);
