@@ -32,8 +32,8 @@ GLfloat g_ScreenMargin = 25.0f;
 GLfloat g_IconMargin = 10.0f;
 GLfloat g_Icon_Outer_Size = 25.0f;
 
-GLfloat g_SphereIcon_x = -(canvas_Width / 2.0f) + g_ScreenMargin;
-GLfloat g_SphereIcon_y = (canvas_Height / 2.0f) - g_ScreenMargin - g_Icon_Outer_Size;
+GLfloat g_SphereIcon_x = -(canvas_Width / 2.0f) + g_ScreenMargin + (g_Icon_Outer_Size / 2.0f);
+GLfloat g_SphereIcon_y = (canvas_Height / 2.0f) - g_ScreenMargin - (g_Icon_Outer_Size / 2.0f);
 
 GLfloat g_CubeIcon_x = g_SphereIcon_x + g_Icon_Outer_Size + g_IconMargin;
 GLfloat g_CubeIcon_y = g_SphereIcon_y;
@@ -59,6 +59,8 @@ int g_RotationTimeout = 42;
 bool g_IsRotating = false;
 
 float rotationRate = 10.0f;
+
+char currentObj = 'C';
 
 
 struct Material {
@@ -92,8 +94,8 @@ Material mCopper = {
 GLfloat cSilver[] = { 192.0f / 255.0f, 192.0f / 255.0f, 192.0f / 255.0f };
 
 Material mSilver = {
-    { cCopper[0] / 4.0f, cCopper[1] / 4.0f, cCopper[2] / 4.0f, 1.0f },
-    { cCopper[0] / 3.0f, cCopper[1] / 3.0f, cCopper[2] / 3.0f, 1.0f },
+    { cSilver[0] / 4.0f, cSilver[1] / 4.0f, cSilver[2] / 4.0f, 1.0f },
+    { cSilver[0] / 3.0f, cSilver[1] / 3.0f, cSilver[2] / 3.0f, 1.0f },
     { 1.0f, 1.0f, 1.0f, 1.0f },
     120.0f
 };
@@ -151,7 +153,45 @@ GLfloat g_CircleIcon_Vertices[23][3]{
 };
 
 
-GLfloat g_CircleIcon_Colors[23][3];  // init in main
+GLfloat g_CircleIcon_Colors[23][3] = {
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f},
+    {1.0f,1.0f,1.0f}
+};  // init in main
+
+GLfloat g_SquareIcon_Vertices[][3] = {
+    {-7.5f, -7.5f, 0.0f},
+    {7.5f, -7.5f, 0.0f},
+    {7.5f, 7.5f, 0.0f},
+    {-7.5f, 7.5f, 0.0f}
+};
+
+GLfloat g_SquareIcon_Colors[][3] = {
+    {1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f}
+};
 
 
 GLfloat g_PlusIcon_Vertices[][3] = {
@@ -159,6 +199,13 @@ GLfloat g_PlusIcon_Vertices[][3] = {
     {7.5f, 0.0f, 0.0f},
     {0.0f, -7.5f, 0.0f},
     {0.0f, 7.5f, 0.0f}
+};
+
+GLfloat g_PlusIcon_Colors[][3] = {
+    {1.5f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f}
 };
 
 
@@ -192,21 +239,32 @@ void drawCube(float x, float y, float rotation, float size) {
     glRotatef(rotation, 0.0f, 1.0f, 0.0f);
 
     // set material values
-    setMaterial(mCopper);
-
+    //setMaterial(mCopper);
+    setMaterial(mSilver);
     glutSolidCube(size / 2.0);
 
     glPopMatrix();
-
-
-
 }
 
 
-void DrawButton() {
 
 
+void DrawButtons() {
 }
+
+
+void timerFunc(int timerId) {
+    if (timerId == TID_WAIT) {
+        g_IsRotating = true;
+        glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
+    }
+    else if (timerId == TID_ROT && g_IsRotating) {
+        g_ObjectRotPos += rotationRate;
+        glutPostRedisplay();
+        glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
+    }
+}
+
 
 void drawSphere(float x, float y, float rotation, float size) {
 
@@ -224,27 +282,6 @@ void drawSphere(float x, float y, float rotation, float size) {
 }
 
 
-void mouseFunction(int button, int state, int x, int y) {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        // move the object to equivalent x,y position in the world
-        g_ObjectXPos = (GLfloat)x - 400;
-        g_ObjectYPos = 400 - (GLfloat)y;
-        glutPostRedisplay();
-    }
-}
-
-void timerFunc(int timerId) {
-    if (timerId == TID_WAIT) {
-        g_IsRotating = true;
-        glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
-    }
-    else if (timerId == TID_ROT && g_IsRotating) {
-        g_ObjectRotPos += rotationRate;
-        glutPostRedisplay();
-        glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
-    }
-}
-
 
 void objectGeneralInit() {
     g_ObjectXPos = INIT_OBJ_X;
@@ -257,27 +294,91 @@ void objectGeneralInit() {
 
 
 
+void mouseFunction(int button, int state, int x, int y) {
+    std::cout << "x: " << x << "   y: " << y << std::endl;
+    // TODO:  Determine strategy for mapping screen coordinates to button striker locations.
+    // Perhaps calcluate mouse ranges in stertup and do simpler comparisions here
+
+    if (button == GLUT_LEFT_BUTTON && (float)x > (g_CubeIcon_x - (g_Icon_Outer_Size/2.0f)) 
+        && (float)x < (g_CubeIcon_x + (g_Icon_Outer_Size/2.0f))
+        && (float)y > (g_CubeIcon_y - (g_Icon_Outer_Size/2.0f))
+        && (float)y < (g_CubeIcon_y - (g_Icon_Outer_Size / 2.0f)))
+    {
+        currentObj = 'C';
+        objectGeneralInit();
+    }
+    else if (button == GLUT_LEFT_BUTTON && (float)x > (g_SphereIcon_x - (g_Icon_Outer_Size / 2.0f))
+        && (float)x < (g_SphereIcon_x + (g_Icon_Outer_Size / 2.0f))
+        && (float)y >(g_SphereIcon_y - (g_Icon_Outer_Size / 2.0f))
+        && (float)y < (g_SphereIcon_y - (g_Icon_Outer_Size / 2.0f)))
+    {
+        currentObj = 'S';
+        objectGeneralInit();
+    }
+    else if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        // move the object to equivalent x,y position in the world
+        g_ObjectXPos = (GLfloat)x - 400;
+        g_ObjectYPos = 400 - (GLfloat)y;
+        glutPostRedisplay();
+    }
+}
+
+
+
+
 void drawUI() {
     // disable the lighting while rendering these items
     glDisable(GL_LIGHTING);
 
-    // Circle Icon
-    glColor3f(1.0f, 1.0f, 1.0f);
+    //// Circle Icon
+    //glColor3f(1.0f, 1.0f, 1.0f);
 
-    glBegin(GL_LINE_LOOP);
+    //glBegin(GL_LINE_LOOP);
 
-    glVertex3f(g_SphereIcon_x, g_SphereIcon_y, g_ObjectZPos);
-    glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y, g_ObjectZPos);
+    //glVertex3f(g_SphereIcon_x, g_SphereIcon_y, g_ObjectZPos);
     //glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y, g_ObjectZPos);
-    glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y + g_Icon_Outer_Size, g_ObjectZPos);
-    glVertex3f(g_SphereIcon_x, g_SphereIcon_y + g_Icon_Outer_Size, g_ObjectZPos);
+    ////glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y, g_ObjectZPos);
+    //glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y + g_Icon_Outer_Size, g_ObjectZPos);
+    //glVertex3f(g_SphereIcon_x, g_SphereIcon_y + g_Icon_Outer_Size, g_ObjectZPos);
 
-    glEnd();
+    //glEnd();
 
-    float cen_x = g_SphereIcon_x + (g_Icon_Outer_Size / 2.0f);
-    float cen_y = g_SphereIcon_y + (g_Icon_Outer_Size / 2.0f);
+    //float cen_x = g_SphereIcon_x + (g_Icon_Outer_Size / 2.0f);
+    //float cen_y = g_SphereIcon_y + (g_Icon_Outer_Size / 2.0f);
 
-    
+
+    glPushMatrix();
+
+    // Sphere button
+    glTranslatef(g_SphereIcon_x, g_SphereIcon_y, g_ObjectZPos);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_Box_Vertices);
+    glColorPointer(3, GL_FLOAT, 0, g_Box_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_CircleIcon_Vertices);
+    glColorPointer(3, GL_FLOAT, 0, g_CircleIcon_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 23);
+
+    glTranslatef(g_IconMargin + g_Icon_Outer_Size, 0.0f, 0.0f);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_Box_Vertices);
+    glColorPointer(3, GL_FLOAT, 0, g_Box_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_SquareIcon_Vertices);
+    glVertexPointer(3, GL_FLOAT, 0, g_SquareIcon_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+
+    glPopMatrix();
+
 
 
     glEnable(GL_LIGHTING);
@@ -294,8 +395,12 @@ void display_func()
 
     setLighting();
 
-    // drawSphere(g_ObjectXPos, g_ObjectYPos, 0.0f, 100);
-    drawCube(g_ObjectXPos, g_ObjectYPos, g_ObjectRotPos, 100);
+    if (currentObj == 'S') {
+        drawSphere(g_ObjectXPos, g_ObjectYPos, 0.0f, 100);
+    }
+    else if (currentObj == 'C') {
+        drawCube(g_ObjectXPos, g_ObjectYPos, g_ObjectRotPos, 100);
+    }
 
 
 
