@@ -38,8 +38,20 @@ GLfloat g_SphereIcon_y = (canvas_Height / 2.0f) - g_ScreenMargin - (g_Icon_Outer
 GLfloat g_CubeIcon_x = g_SphereIcon_x + g_Icon_Outer_Size + g_IconMargin;
 GLfloat g_CubeIcon_y = g_SphereIcon_y;
 
+GLfloat g_PlusIcon_x = g_SphereIcon_x;
+GLfloat g_PlusIcon_y = -(canvas_Height / 2.0f) + g_ScreenMargin + (g_Icon_Outer_Size / 2.0f);
+
+GLfloat g_MinusIcon_x = g_CubeIcon_x;
+GLfloat g_MinusIcon_y = g_PlusIcon_y;
+
+bool g_IsPerpectiveView = false;
 
 
+int sphRng[4];
+int cubRng[4];
+
+int plsRng[4];
+int minRng[4];
 
 GLfloat g_ObjectZPos = -400.0f;
 
@@ -56,6 +68,7 @@ GLdouble g_ObjectSize = 50.0;
 int g_WaitForRotation = 1000;
 int g_RotationTimeout = 42;
 
+int g_WaitLeft = 0;
 bool g_IsRotating = false;
 
 float rotationRate = 10.0f;
@@ -80,7 +93,7 @@ struct Material {
 GLfloat cCopper[] = { 184.0f / 255.0f, 155.0f / 255.0f, 51.0f / 255.0f };
 
 Material mCopper = {
-    { cCopper[0] / 5.0f, cCopper[1] / 5.0f, cCopper[2] / 5.0f, 1.0f },
+    { cCopper[0] / 4.0f, cCopper[1] / 4.0f, cCopper[2] / 4.0f, 1.0f },
     { cCopper[0] / 3.0f, cCopper[1] / 3.0f, cCopper[2] / 3.0f, 1.0f },
     { 1.0f, 1.0f, 1.0f, 1.0f },
     120.0f
@@ -111,103 +124,151 @@ GLfloat lightPosition[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 GLfloat cWhite[3] = { 1.0f, 1.0f, 1.0f };
 
 GLfloat g_Box_Vertices[][3] = {
-    {-g_Icon_Outer_Size / 2.0f, -g_Icon_Outer_Size / 2.0f, 0.0f },
-    { g_Icon_Outer_Size / 2.0f, -g_Icon_Outer_Size / 2.0f, 0.0f },
-    { g_Icon_Outer_Size / 2.0f, g_Icon_Outer_Size / 2.0f, 0.0f },
-    { -g_Icon_Outer_Size / 2.0f, g_Icon_Outer_Size / 2.0f, 0.0f }
+    -g_Icon_Outer_Size / 2.0f, -g_Icon_Outer_Size / 2.0f, 0.0f ,
+    g_Icon_Outer_Size / 2.0f, -g_Icon_Outer_Size / 2.0f, 0.0f,
+    g_Icon_Outer_Size / 2.0f, g_Icon_Outer_Size / 2.0f, 0.0f,
+    -g_Icon_Outer_Size / 2.0f, g_Icon_Outer_Size / 2.0f, 0.0f 
 };
 
-GLfloat g_Box_Colors[][3] = {
-    { 1.0f, 1.0f, 1.0f },
-    { 1.0f, 1.0f, 1.0f },
-    { 1.0f, 1.0f, 1.0f },
-    { 1.0f, 1.0f, 1.0f }
-};
-
-
-
-GLfloat g_CircleIcon_Vertices[23][3]{
-    {7.5000000f, 0.0000000f, 0.0f},
-    {7.2444437f, 1.9411143f, 0.0f},
-    {6.4951905f, 3.7500000f, 0.0f},
-    {5.3033009f, 5.3033009f, 0.0f},
-    {3.7500000f, 6.4951905f, 0.0f },
-    {1.9411143f, 7.2444437f, 0.0f},
-    {0.0000000f, 7.5000000f, 0.0f},
-    {-1.9411143f, 7.2444437f, 0.0f},
-    {-3.7500000f, 6.4951905f, 0.0f },
-    {-5.3033009f, 5.3033009f, 0.0f},
-    {-6.4951905f, 3.7500000f, 0.0f},
-    {-7.5000000f, 0.0000000f, 0.0f},
-    {-7.2444437f, -1.9411143f, 0.0f},
-    {-6.4951905f, -3.7500000f, 0.0f},
-    {-5.3033009f, -5.3033009f, 0.0f},
-    {-3.7500000f, -6.4951905f, 0.0f },
-    {-1.9411143f, -7.2444437f, 0.0f},
-    {-0.0000000f, -7.5000000f, 0.0f},
-    {1.9411143f, -7.2444437f, 0.0f},
-    {3.7500000f, -6.4951905f, 0.0f },
-    {5.3033009f, -5.3033009f, 0.0f},
-    {6.4951905f, -3.7500000f, 0.0f},
-    {7.5000000f, 0.0000000f, 0.0f}
+GLfloat g_Box_Colors[] = {
+     1.0f, 1.0f, 1.0f ,
+     1.0f, 1.0f, 1.0f ,
+     1.0f, 1.0f, 1.0f ,
+     1.0f, 1.0f, 1.0f 
 };
 
 
-GLfloat g_CircleIcon_Colors[23][3] = {
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f},
-    {1.0f,1.0f,1.0f}
+
+GLfloat g_CircleIcon_Vertices[]{
+     7.5000000f,  0.0000000f, 0.0f,
+     7.2444437f,  1.9411143f, 0.0f,
+     6.4951905f,  3.7500000f, 0.0f,
+     5.3033009f,  5.3033009f, 0.0f,
+     3.7500000f,  6.4951905f, 0.0f,
+     1.9411143f,  7.2444437f, 0.0f,
+     0.0000000f,  7.5000000f, 0.0f,
+    -1.9411143f,  7.2444437f, 0.0f,
+    -3.7500000f,  6.4951905f, 0.0f,
+    -5.3033009f,  5.3033009f, 0.0f,
+    -6.4951905f,  3.7500000f, 0.0f,
+    -7.5000000f,  0.0000000f, 0.0f,
+    -7.2444437f, -1.9411143f, 0.0f,
+    -6.4951905f, -3.7500000f, 0.0f,
+    -5.3033009f, -5.3033009f, 0.0f,
+    -3.7500000f, -6.4951905f, 0.0f,
+    -1.9411143f, -7.2444437f, 0.0f,
+    -0.0000000f, -7.5000000f, 0.0f,
+     1.9411143f, -7.2444437f, 0.0f,
+     3.7500000f, -6.4951905f, 0.0f,
+     5.3033009f, -5.3033009f, 0.0f,
+     6.4951905f, -3.7500000f, 0.0f,
+     7.5000000f,  0.0000000f, 0.0f
+};
+
+
+GLfloat g_CircleIcon_Colors[] = {
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f,
+    1.0f,1.0f,1.0f
 };  // init in main
 
-GLfloat g_SquareIcon_Vertices[][3] = {
-    {-7.5f, -7.5f, 0.0f},
-    {7.5f, -7.5f, 0.0f},
-    {7.5f, 7.5f, 0.0f},
-    {-7.5f, 7.5f, 0.0f}
+GLfloat g_SquareIcon_Vertices[] = {
+    -7.5f, -7.5f, 0.0f,
+     7.5f, -7.5f, 0.0f,
+     7.5f,  7.5f, 0.0f,
+    -7.5f,  7.5f, 0.0f
 };
 
-GLfloat g_SquareIcon_Colors[][3] = {
-    {1.0f, 1.0f, 1.0f},
-    {1.0f, 1.0f, 1.0f},
-    {1.0f, 1.0f, 1.0f},
-    {1.0f, 1.0f, 1.0f}
+GLfloat g_SquareIcon_Colors[] = {
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f
 };
 
 
-GLfloat g_PlusIcon_Vertices[][3] = {
-    {-7.5f, 0.0f, 0.0f},
-    {7.5f, 0.0f, 0.0f},
-    {0.0f, -7.5f, 0.0f},
-    {0.0f, 7.5f, 0.0f}
+GLfloat g_PlusIcon_Vertices[] = {
+    -7.5f, -1.0f, 0.0f,
+    -1.0f, -1.0f, 0.0f,
+    -1.0f, -7.5f, 0.0f,
+     1.0f, -7.5f, 0.0f,
+     1.0f, -1.0f, 0.0f,
+     7.5f, -1.0f, 0.0f,
+     7.5f,  1.0f, 0.0f,
+     1.0f,  1.0f, 0.0f,
+     1.0f,  7.5f, 0.0f,
+    -1.0f,  7.5f, 0.0f,
+    -1.0f,  1.0f, 0.0f,
+    -7.5f,  1.0f, 0.0f,
+    -7.5f, -1.0f, 0.0f
 };
 
-GLfloat g_PlusIcon_Colors[][3] = {
-    {1.5f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f}
+GLfloat g_PlusIcon_Colors[] = {
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
 };
 
+GLfloat g_MinusIcon_Vertices[] = {
+    -7.5f, -1.0f,  0.0f,
+     7.5f, -1.0f,  0.0f,
+     7.5f,  1.0f,  0.0f,
+    -7.5f,  1.0f,  0.0f
+};
+
+GLfloat g_MinusIcon_Colors[] = {
+    1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 0.0f
+};
+
+
+int toMouseY(float y) {
+    return (canvas_Height / 2) - y;
+}
+
+float toWorldY(int y) {
+    return (canvas_Height/2.0f) - (GLfloat)y;
+}
+
+int toMouseX(float x) {
+    return round(x) + (canvas_Width / 2);
+}
+
+float toWorldX(int x) {
+    return (GLfloat)x - (canvas_Width / 2);
+}
 
 void setMaterial(Material current) {
 
@@ -232,6 +293,7 @@ void setLighting() {
 }
 
 
+
 void drawCube(float x, float y, float rotation, float size) {
     glPushMatrix();
 
@@ -239,9 +301,9 @@ void drawCube(float x, float y, float rotation, float size) {
     glRotatef(rotation, 0.0f, 1.0f, 0.0f);
 
     // set material values
-    //setMaterial(mCopper);
-    setMaterial(mSilver);
-    glutSolidCube(size / 2.0);
+    setMaterial(mCopper);
+    //setMaterial(mSilver);
+    glutSolidCube(size);
 
     glPopMatrix();
 }
@@ -254,15 +316,20 @@ void DrawButtons() {
 
 
 void timerFunc(int timerId) {
-    if (timerId == TID_WAIT) {
-        g_IsRotating = true;
-        glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
-    }
-    else if (timerId == TID_ROT && g_IsRotating) {
+    
+    if (timerId == TID_ROT && g_IsRotating) {
         g_ObjectRotPos += rotationRate;
+        if (g_ObjectRotPos >= 360.0f) g_ObjectRotPos -= 360.0f;
         glutPostRedisplay();
-        glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
     }
+    else if (timerId == TID_ROT && g_IsRotating == false) {
+        g_WaitLeft -= g_RotationTimeout;
+        if (g_WaitLeft <= 0) {
+            g_WaitLeft = 0;
+            g_IsRotating = true;
+        }
+    }
+    glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
 }
 
 
@@ -289,7 +356,7 @@ void objectGeneralInit() {
     g_ObjectRotPos = 0.0f;
     g_ObjectSize = INIT_OBJ_SIZE;
     g_IsRotating = false;
-    glutTimerFunc(1000, timerFunc, TID_WAIT);
+    g_WaitLeft = g_WaitForRotation;
 }
 
 
@@ -299,28 +366,36 @@ void mouseFunction(int button, int state, int x, int y) {
     // TODO:  Determine strategy for mapping screen coordinates to button striker locations.
     // Perhaps calcluate mouse ranges in stertup and do simpler comparisions here
 
-    if (button == GLUT_LEFT_BUTTON && (float)x > (g_CubeIcon_x - (g_Icon_Outer_Size/2.0f)) 
-        && (float)x < (g_CubeIcon_x + (g_Icon_Outer_Size/2.0f))
-        && (float)y > (g_CubeIcon_y - (g_Icon_Outer_Size/2.0f))
-        && (float)y < (g_CubeIcon_y - (g_Icon_Outer_Size / 2.0f)))
-    {
-        currentObj = 'C';
-        objectGeneralInit();
-    }
-    else if (button == GLUT_LEFT_BUTTON && (float)x > (g_SphereIcon_x - (g_Icon_Outer_Size / 2.0f))
-        && (float)x < (g_SphereIcon_x + (g_Icon_Outer_Size / 2.0f))
-        && (float)y >(g_SphereIcon_y - (g_Icon_Outer_Size / 2.0f))
-        && (float)y < (g_SphereIcon_y - (g_Icon_Outer_Size / 2.0f)))
+    if (button == GLUT_LEFT_BUTTON &&
+          x >= sphRng[0] && x <= sphRng[2] && y >= sphRng[1] && y <= sphRng[3]) 
     {
         currentObj = 'S';
         objectGeneralInit();
     }
+    else if (button == GLUT_LEFT_BUTTON && 
+        x >= cubRng[0] && x <= cubRng[2] && y >= cubRng[1] && y <= cubRng[3]) 
+    {
+        currentObj = 'C';
+        objectGeneralInit();
+    }
+    else if (button == GLUT_LEFT_BUTTON &&
+        x >= plsRng[0] && x <= plsRng[2] && y >= plsRng[1] && y <= plsRng[3])
+    {
+        if (g_ObjectSize <= g_Object_Max_Size)
+            g_ObjectSize += 5;
+    }
+    else if (button == GLUT_LEFT_BUTTON &&
+        x >= minRng[0] && x <= minRng[2] && y >= minRng[1] && y <= minRng[3])
+    {
+        if (g_ObjectSize >= g_Object_Min_Size)
+            g_ObjectSize -= 5;
+    }
     else if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         // move the object to equivalent x,y position in the world
-        g_ObjectXPos = (GLfloat)x - 400;
-        g_ObjectYPos = 400 - (GLfloat)y;
-        glutPostRedisplay();
+        g_ObjectXPos = toWorldX(x);
+        g_ObjectYPos = toWorldY(y);
     }
+    glutPostRedisplay();
 }
 
 
@@ -355,6 +430,7 @@ void drawUI() {
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
 
+
     glVertexPointer(3, GL_FLOAT, 0, g_Box_Vertices);
     glColorPointer(3, GL_FLOAT, 0, g_Box_Colors);
     glDrawArrays(GL_LINE_LOOP, 0, 4);
@@ -370,7 +446,31 @@ void drawUI() {
     glDrawArrays(GL_LINE_LOOP, 0, 4);
 
     glVertexPointer(3, GL_FLOAT, 0, g_SquareIcon_Vertices);
-    glVertexPointer(3, GL_FLOAT, 0, g_SquareIcon_Colors);
+    glColorPointer(3, GL_FLOAT, 0, g_SquareIcon_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+
+    glPopMatrix();
+    glPushMatrix();
+
+    glTranslatef(g_PlusIcon_x, g_PlusIcon_y, g_ObjectZPos);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_Box_Vertices);
+    glColorPointer(3, GL_FLOAT, 0, g_Box_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_PlusIcon_Vertices);
+    glColorPointer(3, GL_FLOAT, 0, g_PlusIcon_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 13);
+
+    glTranslatef(g_IconMargin + g_Icon_Outer_Size, 0.0f, 0.0f);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_Box_Vertices);
+    glColorPointer(3, GL_FLOAT, 0, g_Box_Colors);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    glVertexPointer(3, GL_FLOAT, 0, g_MinusIcon_Vertices);
+    glColorPointer(3, GL_FLOAT, 0, g_MinusIcon_Colors);
     glDrawArrays(GL_LINE_LOOP, 0, 4);
 
 
@@ -396,13 +496,11 @@ void display_func()
     setLighting();
 
     if (currentObj == 'S') {
-        drawSphere(g_ObjectXPos, g_ObjectYPos, 0.0f, 100);
+        drawSphere(g_ObjectXPos, g_ObjectYPos, g_ObjectRotPos, g_ObjectSize);
     }
     else if (currentObj == 'C') {
-        drawCube(g_ObjectXPos, g_ObjectYPos, g_ObjectRotPos, 100);
+        drawCube(g_ObjectXPos, g_ObjectYPos, g_ObjectRotPos, g_ObjectSize);
     }
-
-
 
     // draw the user interface, complete with buttons
     drawUI();
@@ -411,8 +509,61 @@ void display_func()
     //glFlush();   // may need to uncomment this line!
 }
 
+void setButtonRanges() {
+    int halfSpan = g_Icon_Outer_Size / 2 + 1;
+    sphRng[0] = toMouseX(g_SphereIcon_x) - halfSpan;
+    sphRng[1] = toMouseY(g_SphereIcon_y) - halfSpan;
+    sphRng[2] = toMouseX(g_SphereIcon_x) + halfSpan;
+    sphRng[3] = toMouseY(g_SphereIcon_y) + halfSpan;
 
+    cubRng[0] = toMouseX(g_CubeIcon_x) - halfSpan;
+    cubRng[1] = toMouseY(g_CubeIcon_y) - halfSpan;
+    cubRng[2] = toMouseX(g_CubeIcon_x) + halfSpan;
+    cubRng[3] = toMouseY(g_CubeIcon_y) + halfSpan;
+
+    plsRng[0] = toMouseX(g_PlusIcon_x) - halfSpan;
+    plsRng[1] = toMouseY(g_PlusIcon_y) - halfSpan;
+    plsRng[2] = toMouseX(g_PlusIcon_x) + halfSpan;
+    plsRng[3] = toMouseY(g_PlusIcon_y) + halfSpan;
+
+    minRng[0] = toMouseX(g_MinusIcon_x) - halfSpan;
+    minRng[1] = toMouseY(g_MinusIcon_y) - halfSpan;
+    minRng[2] = toMouseX(g_MinusIcon_x) + halfSpan;
+    minRng[3] = toMouseY(g_MinusIcon_y) + halfSpan;
+
+
+
+}
 // #define canvas_name "Program 5 Mini-Modeler";
+
+
+void my_perspective_projection(int width, int height)
+{
+    GLdouble width_bound, height_bound;
+    width_bound = (GLdouble)width;  height_bound = (GLdouble)height;
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glFrustum(-10, 10, -10, 10, 10, 800);
+    //glFrustum(-width_bound / 2.0, width_bound / 2.0, -height_bound / 2.0, height_bound / 2.0, 10.0, 800.0);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+
+void keyboardFunction(unsigned char value, int x, int y) {
+    if (value == 'P' || value == 'p') {
+        if (g_IsPerpectiveView) {
+            glutReshapeFunc(my_3d_projection);
+            my_3d_projection(canvas_Width, canvas_Height);
+        }
+        else
+        {
+            glutReshapeFunc(my_perspective_projection);
+            my_perspective_projection(canvas_Width, canvas_Height);
+        }
+        g_IsPerpectiveView = !g_IsPerpectiveView;
+    }
+}
 
 
 int main(int argc, char** argv)
@@ -420,23 +571,15 @@ int main(int argc, char** argv)
     glutInit(&argc, argv);
     my_setup(canvas_Width, canvas_Height, canvas_Name);
 
+    setButtonRanges();
+
     glutDisplayFunc(display_func);
     glutMouseFunc(mouseFunction);
 
-
-    // temporary just to get things "rolling"
+    glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
+    glutKeyboardFunc(keyboardFunction);
     objectGeneralInit();
     glutMainLoop();
     return 0;
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
