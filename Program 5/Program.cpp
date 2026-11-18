@@ -63,8 +63,6 @@ GLfloat g_ObjectRotPos = 0.0f;
 GLdouble g_ObjectSize = 50.0;
 
 
-
-
 int g_WaitForRotation = 1000;
 int g_RotationTimeout = 42;
 
@@ -77,6 +75,7 @@ char currentObj = 'C';
 
 
 struct Material {
+    char type;
     GLfloat ambient[4];
     GLfloat diffuse[4];
     GLfloat specular[4];
@@ -93,6 +92,7 @@ struct Material {
 GLfloat cCopper[] = { 184.0f / 255.0f, 155.0f / 255.0f, 51.0f / 255.0f };
 
 Material mCopper = {
+    'C',
     { cCopper[0] / 4.0f, cCopper[1] / 4.0f, cCopper[2] / 4.0f, 1.0f },
     { cCopper[0] / 3.0f, cCopper[1] / 3.0f, cCopper[2] / 3.0f, 1.0f },
     { 1.0f, 1.0f, 1.0f, 1.0f },
@@ -107,14 +107,20 @@ Material mCopper = {
 GLfloat cSilver[] = { 192.0f / 255.0f, 192.0f / 255.0f, 192.0f / 255.0f };
 
 Material mSilver = {
+    'S',
     { cSilver[0] / 4.0f, cSilver[1] / 4.0f, cSilver[2] / 4.0f, 1.0f },
     { cSilver[0] / 3.0f, cSilver[1] / 3.0f, cSilver[2] / 3.0f, 1.0f },
     { 1.0f, 1.0f, 1.0f, 1.0f },
     120.0f
 };
 
+// EXTRA CREDIT:  Global variable for the current material
+Material g_ObjectMat = mCopper;
 
-
+// EXTRA CREDIT:  Global parameter for Camera Position in perspective view
+GLfloat g_CameraZPos = 0.0f;
+GLfloat g_CameraZMax = 0.0f;
+GLfloat g_CameraZMin = -500.0f;
 
 GLfloat lightAmbient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -259,7 +265,7 @@ int toMouseY(float y) {
 }
 
 float toWorldY(int y) {
-    return (canvas_Height/2.0f) - (GLfloat)y;
+    return ((canvas_Height/2.0f) - (GLfloat)y) * (((canvas_Height / 2.0f) + g_CameraZPos) / (canvas_Height / 2.0f));
 }
 
 int toMouseX(float x) {
@@ -267,7 +273,7 @@ int toMouseX(float x) {
 }
 
 float toWorldX(int x) {
-    return (GLfloat)x - (canvas_Width / 2);
+    return ((GLfloat)x - (canvas_Width / 2)) * ( ((canvas_Width / 2.0f) + g_CameraZPos) / (canvas_Width / 2.0f));
 }
 
 void setMaterial(Material current) {
@@ -301,7 +307,7 @@ void drawCube(float x, float y, float rotation, float size) {
     glRotatef(rotation, 0.0f, 1.0f, 0.0f);
 
     // set material values
-    setMaterial(mCopper);
+    setMaterial(g_ObjectMat);
     //setMaterial(mSilver);
     glutSolidCube(size);
 
@@ -341,7 +347,7 @@ void drawSphere(float x, float y, float rotation, float size) {
     glRotatef(rotation, 0.0f, 1.0f, 0.0f);
 
     // set material values
-    setMaterial(mCopper);
+    setMaterial(g_ObjectMat);
 
     glutSolidSphere(size / 2.0, 50, 50);
 
@@ -405,24 +411,11 @@ void drawUI() {
     // disable the lighting while rendering these items
     glDisable(GL_LIGHTING);
 
-    //// Circle Icon
-    //glColor3f(1.0f, 1.0f, 1.0f);
-
-    //glBegin(GL_LINE_LOOP);
-
-    //glVertex3f(g_SphereIcon_x, g_SphereIcon_y, g_ObjectZPos);
-    //glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y, g_ObjectZPos);
-    ////glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y, g_ObjectZPos);
-    //glVertex3f(g_SphereIcon_x + g_Icon_Outer_Size, g_SphereIcon_y + g_Icon_Outer_Size, g_ObjectZPos);
-    //glVertex3f(g_SphereIcon_x, g_SphereIcon_y + g_Icon_Outer_Size, g_ObjectZPos);
-
-    //glEnd();
-
-    //float cen_x = g_SphereIcon_x + (g_Icon_Outer_Size / 2.0f);
-    //float cen_y = g_SphereIcon_y + (g_Icon_Outer_Size / 2.0f);
-
+    glOrtho(-canvas_Width / 2.0, canvas_Width / 2.0, -canvas_Height / 2.0, canvas_Height / 2.0, 0.0, 800.0);
+    glLoadIdentity();
 
     glPushMatrix();
+
 
     // Sphere button
     glTranslatef(g_SphereIcon_x, g_SphereIcon_y, g_ObjectZPos);
@@ -493,6 +486,8 @@ void display_func()
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glTranslatef(0.0f, 0.0f, g_CameraZPos * -1);
+
     setLighting();
 
     if (currentObj == 'S') {
@@ -545,6 +540,8 @@ void my_perspective_projection(int width, int height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-10, 10, -10, 10, 10, 800);
+    
+    //gluPerspective(90.0, (GLdouble)width/(GLdouble)height, -1*g_CameraZPos, 800);
     //glFrustum(-width_bound / 2.0, width_bound / 2.0, -height_bound / 2.0, height_bound / 2.0, 10.0, 800.0);
     glMatrixMode(GL_MODELVIEW);
 }
@@ -562,6 +559,33 @@ void keyboardFunction(unsigned char value, int x, int y) {
             my_perspective_projection(canvas_Width, canvas_Height);
         }
         g_IsPerpectiveView = !g_IsPerpectiveView;
+    }
+    // EXTRA CREDIT:  On user input of C, change material
+    else if (value == 'C' || value == 'c')
+    {
+        if (g_ObjectMat.type == 'C') {
+            g_ObjectMat = mSilver;
+        }
+        else if (g_ObjectMat.type == 'S') {
+            g_ObjectMat = mCopper;
+        }
+    }
+    // EXTRA CREDIT:  On user input of F, zoom in
+    //                and on user input of B, zoom out
+    else if (g_IsPerpectiveView && (value == 'F' || value == 'f'))
+    {
+        if (g_CameraZPos > g_CameraZMin) {
+            g_CameraZPos -= 10;
+            my_perspective_projection(canvas_Width, canvas_Height);
+        }
+    }
+    else if (g_IsPerpectiveView && (value == 'B' || value == 'b'))
+    {
+        if (g_CameraZPos < g_CameraZMax)
+        {
+            g_CameraZPos += 10;
+            my_perspective_projection(canvas_Width, canvas_Height);
+        }
     }
 }
 
