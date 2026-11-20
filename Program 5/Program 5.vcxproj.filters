@@ -18,9 +18,15 @@
     <ClCompile Include="Program.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LinuxSource\Program5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenGL445Setup-2026.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinuxSource\OpenGL445Setup-2026.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
