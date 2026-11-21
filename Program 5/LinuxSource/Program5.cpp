@@ -342,56 +342,56 @@ void setLighting() {
 void drawCube(float x, float y, float rotation, float size) {
     glPushMatrix(); // ready to go back
 
-    glTranslatef(x, y, g_ObjectZPos);  
+    glTranslatef(x, y, g_ObjectZPos);         // Object x,y
+    glRotatef(rotation, 0.0f, 1.0f, 0.0f);    // rotate around y
+
+    // set material values
+    setMaterial(g_ObjectMat);
+
+    glutSolidCube(size);    // draw the cube
+
+    glPopMatrix();  // reset transformation
+}
+
+// Draws the sphere object in the specified position
+void drawSphere(float x, float y, float rotation, float size) {
+
+    glPushMatrix();  // save the current transform
+
+    glTranslatef(x, y, g_ObjectZPos);        // Ob
     glRotatef(rotation, 0.0f, 1.0f, 0.0f);
 
     // set material values
     setMaterial(g_ObjectMat);
-    //setMaterial(mSilver);
-    glutSolidCube(size);
+
+    glutSolidSphere(size / 2.0, 10 * size, 10 * size);
 
     glPopMatrix();
 }
 
-
-
-
-void DrawButtons() {
-}
-
-
+// Handles glut timer callbacks, was able to use just one 
+// id value.
 void timerFunc(int timerId) {
-    
+    // the object is rotating  
     if (timerId == TID_ROT && g_IsRotating) {
         g_ObjectRotPos += rotationRate;
         if (g_ObjectRotPos >= 360.0f) g_ObjectRotPos -= 360.0f;
         glutPostRedisplay();
     }
+    // the object is waiting to rotate
     else if (timerId == TID_ROT && g_IsRotating == false) {
-        g_WaitLeft -= g_RotationTimeout;
+        g_WaitLeft -= g_RotationTimeout; // reduce wait time
         if (g_WaitLeft <= 0) {
-            g_WaitLeft = 0;
-            g_IsRotating = true;
+            // done waiting
+            g_WaitLeft = 0;      // reset wait time
+            g_IsRotating = true; // set the rotation flag
         }
     }
-    glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT);
+    // set the timer callback
+    glutTimerFunc(g_RotationTimeout, timerFunc, TID_ROT); 
 }
 
 
-void drawSphere(float x, float y, float rotation, float size) {
-
-    glPushMatrix();
-
-    glTranslatef(x, y, g_ObjectZPos);
-    glRotatef(rotation, 0.0f, 1.0f, 0.0f);
-
-    // set material values
-    setMaterial(g_ObjectMat);
-
-    glutSolidSphere(size / 2.0, 10*size, 10*size);
-
-    glPopMatrix();
-}
 
 
 
