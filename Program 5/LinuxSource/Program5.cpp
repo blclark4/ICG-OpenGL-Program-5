@@ -394,22 +394,19 @@ void timerFunc(int timerId) {
 
 
 
-
+// object setup and reset operations to handle initial positioning, size and state of the object when first created.
 void objectGeneralInit() {
-    g_ObjectXPos = INIT_OBJ_X;
-    g_ObjectYPos = INIT_OBJ_Y;
-    g_ObjectRotPos = 0.0f;
-    g_ObjectSize = INIT_OBJ_SIZE;
-    g_IsRotating = false;
-    g_WaitLeft = g_WaitForRotation;
+    g_ObjectXPos = INIT_OBJ_X;  // Cardinal x
+    g_ObjectYPos = INIT_OBJ_Y;  // Cardinal y
+    g_ObjectRotPos = 0.0f;      // Cardinal rotation 
+    g_ObjectSize = INIT_OBJ_SIZE;  // Cardinal size
+    g_IsRotating = false;    // not rotating
+    g_WaitLeft = g_WaitForRotation;  // start rotation countdown
 }
 
 
-
+// mouse click handler - Handles UI button clicks based on screen ranges calculated at startup. Also performs a repositoknwhene er the click does not match the expected position of a button. screen position ranges are calculated and stored in global var
 void mouseFunction(int button, int state, int x, int y) {
-    std::cout << "x: " << x << "   y: " << y << std::endl;
-    // TODO:  Determine strategy for mapping screen coordinates to button striker locations.
-    // Perhaps calcluate mouse ranges in stertup and do simpler comparisions here
 
     if (button == GLUT_LEFT_BUTTON &&
           x >= sphRng[0] && x <= sphRng[2] && y >= sphRng[1] && y <= sphRng[3]) 
